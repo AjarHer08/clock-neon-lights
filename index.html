@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jam Neon Lights dengan Visualizer YouTube Music Playlist</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #0a0a0a;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(255, 0, 150, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 255, 255, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(255, 255, 0, 0.2) 0%, transparent 50%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Orbitron', sans-serif;
+            overflow: hidden;
+        }
+        
+        .container {
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .clock {
+            font-size: 6rem;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 
+                0 0 10px #fff,
+                0 0 20px #fff,
+                0 0 30px #e60073,
+                0 0 40px #e60073,
+                0 0 50px #e60073,
+                0 0 60px #e60073,
+                0 0 70px #e60073,
+                0 0 80px #e60073,
+                0 0 90px #e60073,
+                0 0 100px #e60073;
+            animation: glow 2s ease-in-out infinite alternate;
+            letter-spacing: 0.1em;
+            margin-bottom: 20px;
+        }
+        
+        .date {
+            font-size: 1.5rem;
+            color: #00ffff;
+            text-shadow: 
+                0 0 5px #00ffff,
+                0 0 10px #00ffff,
+                0 0 15px #00ffff,
+                0 0 20px #00ffff;
+            margin-top: 20px;
+            letter-spacing: 0.1em;
+        }
+        
+        .neon-border {
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            right: -20px;
+            bottom: -20px;
+            border: 2px solid #00ffff;
+            border-radius: 20px;
+            box-shadow: 
+                0 0 5px #00ffff,
+                0 0 10px #00ffff,
+                0 0 15px #00ffff,
+                0 0 20px #00ffff;
+            animation: borderGlow 3s ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        .visualizer-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 20px;
+            z-index: 1;
+        }
+        
+        .visualizer-bar {
+            width: 8px;
+            background: linear-gradient(to top, #00ffff, #e60073);
+            margin: 0 2px;
+            border-radius: 4px 4px 0 0;
+            box-shadow: 
+                0 0 10px #00ffff,
+                0 0 20px #00ffff;
+            animation: pulse 0.5s ease-in-out;
+        }
+        
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            justify-content: center;
+            z-index: 10;
+            max-width: 500px;
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid #00ffff;
+            color: #00ffff;
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 0 10px rgba(0, 255, 255, 0.5),
+                inset 0 0 10px rgba(0, 255, 255, 0.1);
+        }
+        
+        .btn:hover {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 
+                0 0 20px rgba(0, 255, 255, 0.8),
+                inset 0 0 10px rgba(0, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+        }
+        
+        .status {
+            color: #00ffff;
+            margin-top: 15px;
+            font-size: 1rem;
+            text-shadow: 0 0 5px #00ffff;
+        }
+        
+        .now-playing {
+            color: #00ffff;
+            margin-top: 10px;
+            font-size: 1.2rem;
+            text-shadow: 0 0 5px #00ffff;
+        }
+        
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #fff;
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: float 10s infinite linear;
+        }
+        
+        @keyframes glow {
+            from {
+                text-shadow: 
+                    0 0 10px #fff,
+                    0 0 20px #fff,
+                    0 0 30px #e60073,
+                    0 0 40px #e60073,
+                    0 0 50px #e60073,
+                    0 0 60px #e60073,
+                    0 0 70px #e60073,
+                    0 0 80px #e60073,
+                    0 0 90px #e60073,
+                    0 0 100px #e60073;
+            }
+            to {
+                text-shadow: 
+                    0 0 20px #fff,
+                    0 0 30px #ff4da6,
+                    0 0 40px #ff4da6,
+                    0 0 50px #ff4da6,
+                    0 0 60px #ff4da6,
+                    0 0 70px #ff4da6,
+                    0 0 80px #ff4da6,
+                    0 0 90px #ff4da6,
+                    0 0 100px #ff4da6,
+                    0 0 110px #ff4da6;
+            }
+        }
+        
+        @keyframes borderGlow {
+            0% {
+                box-shadow: 
+                    0 0 5px #00ffff,
+                    0 0 10px #00ffff,
+                    0 0 15px #00ffff,
+                    0 0 20px #00ffff;
+            }
+            50% {
+                box-shadow: 
+                    0 0 10px #00ffff,
+                    0 0 20px #00ffff,
+                    0 0 30px #00ffff,
+                    0 0 40px #00ffff;
+            }
+            100% {
+                box-shadow: 
+                    0 0 5px #00ffff,
+                    0 0 10px #00ffff,
+                    0 0 15px #00ffff,
+                    0 0 20px #00ffff;
+            }
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scaleY(1);
+            }
+            50% {
+                transform: scaleY(1.1);
+            }
+            100% {
+                transform: scaleY(1);
+            }
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .clock {
+                font-size: 4rem;
+            }
+            .date {
+                font-size: 1.2rem;
+            }
+            .visualizer-container {
+                height: 150px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .clock {
+                font-size: 3rem;
+            }
+            .date {
+                font-size: 1rem;
+            }
+            .visualizer-container {
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="neon-border"></div>
+        <div class="clock" id="clock">00:00:00</div>
+        <div class="date" id="date">Loading...</div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <button class="btn" id="micBtn">Microphone</button>
+                <label for="fileInput" class="btn">Upload File</label>
+                <input type="file" id="fileInput" class="file-input" accept="audio/*">
+            </div>
+            
+            <div class="status" id="status">Memuat playlist YouTube Music...</div>
+            <div class="now-playing" id="nowPlaying">Memutar playlist: PL8Cv38St6OFxX43ZORGLpoLCYe3_4UHY0</div>
+        </div>
+    </div>
+    
+    <div class="visualizer-container" id="visualizer"></div>
+    <div class="particles" id="particles"></div>
+
+    <script>
+        // Clock functionality
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+            
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateString = now.toLocaleDateString('id-ID', options);
+            document.getElementById('date').textContent = dateString;
+        }
+        
+        // Create particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Random position
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                
+                // Random animation duration
+                particle.style.animationDuration = (10 + Math.random() * 20) + 's';
+                
+                // Random delay
+                particle.style.animationDelay = Math.random() * 10 + 's';
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // Audio Visualizer
+        class AudioVisualizer {
+            constructor() {
+                this.audioContext = null;
+                this.analyser = null;
+                this.source = null;
+                this.dataArray = null;
+                this.bars = [];
+                this.animationId = null;
+                this.isPlaying = false;
+                this.audioElement = null;
+                this.currentSource = null;
+                this.youtubePlayer = null;
+                
+                this.init();
+            }
+            
+            init() {
+                // Create visualizer bars
+                const visualizer = document.getElementById('visualizer');
+                const barCount = 64;
+                
+                for (let i = 0; i < barCount; i++) {
+                    const bar = document.createElement('div');
+                    bar.className = 'visualizer-bar';
+                    visualizer.appendChild(bar);
+                    this.bars.push(bar);
+                }
+            }
+            
+            async startMicrophone() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    
+                    this.source = this.audioContext.createMediaStreamSource(stream);
+                    this.analyser = this.audioContext.createAnalyser();
+                    this.analyser.fftSize = 256;
+                    
+                    this.source.connect(this.analyser);
+                    
+                    this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+                    this.isPlaying = true;
+                    this.visualize();
+                    
+                    this.updateStatus('Menggunakan mikrofon...');
+                    this.updateNowPlaying('Mikrofon');
+                    
+                } catch (error) {
+                    console.error('Error accessing microphone:', error);
+                    this.updateStatus('Gagal mengakses mikrofon');
+                    alert('Tidak dapat mengakses mikrofon. Pastikan Anda telah memberikan izin.');
+                }
+            }
+            
+            startFile(file) {
+                this.stop();
+                
+                try {
+                    const url = URL.createObjectURL(file);
+                    
+                    this.audioElement = new Audio(url);
+                    this.audioElement.crossOrigin = "anonymous";
+                    
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    this.source = this.audioContext.createMediaElementSource(this.audioElement);
+                    this.analyser = this.audioContext.createAnalyser();
+                    this.analyser.fftSize = 256;
+                    
+                    this.source.connect(this.analyser);
+                    this.analyser.connect(this.audioContext.destination);
+                    
+                    this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+                    this.isPlaying = true;
+                    this.currentSource = 'file';
+                    
+                    this.audioElement.addEventListener('ended', () => {
+                        this.stop();
+                    });
+                    
+                    this.audioElement.addEventListener('error', (e) => {
+                        console.error('Audio error:', e);
+                        this.updateStatus('Gagal memuat file audio');
+                        alert('Gagal memuat file audio. Pastikan format file didukung.');
+                        this.stop();
+                    });
+                    
+                    this.audioElement.play().catch(error => {
+                        console.error('Error playing audio:', error);
+                        this.updateStatus('Gagal memainkan audio');
+                        alert('Gagal memainkan audio. Pastikan file tidak rusak.');
+                        this.stop();
+                    });
+                    
+                    this.visualize();
+                    this.updateStatus(`Memainkan: ${file.name}`);
+                    this.updateNowPlaying(file.name);
+                    
+                } catch (error) {
+                    console.error('Error starting file:', error);
+                    this.updateStatus('Terjadi kesalahan saat memuat file');
+                    alert('Terjadi kesalahan saat memuat file audio.');
+                    this.stop();
+                }
+            }
+            
+            async startYouTubePlaylist(playlistId) {
+                this.stop();
+                
+                try {
+                    this.updateStatus('Memuat playlist YouTube Music...');
+                    
+                    // Create audio context
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    // Load YouTube IFrame API
+                    await this.loadYouTubeAPI();
+                    
+                    // Create YouTube player for the first video in playlist
+                    this.youtubePlayer = new YT.Player('youtube-player', {
+                        height: '0',
+                        width: '0',
+                        videoId: playlistId, // Note: This is a simplified approach
+                        playerVars: {
+                            'autoplay': 1,
+                            'controls': 0,
+                            'showinfo': 0,
+                            'rel': 0,
+                            'iv_load_policy': 3,
+                            'modestbranding': 1,
+                            'playlist': playlistId,
+                            'loop': 1,
+                            'index': 0
+                        },
+                        events: {
+                            'onReady': (event) => {
+                                const player = event.target;
+                                
+                                // Get audio context from player
+                                this.source = this.audioContext.createMediaElementSource(player.getIframe());
+                                this.analyser = this.audioContext.createAnalyser();
+                                this.analyser.fftSize = 256;
+                                
+                                this.source.connect(this.analyser);
+                                this.analyser.connect(this.audioContext.destination);
+                                
+                                this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+                                this.isPlaying = true;
+                                this.currentSource = 'youtube';
+                                
+                                player.playVideo();
+                                
+                                this.visualize();
+                                this.updateStatus('Memainkan YouTube Music Playlist');
+                                this.updateNowPlaying('YouTube Music Playlist');
+                            },
+                            'onError': (event) => {
+                                this.updateStatus('Error YouTube');
+                                alert('Gagal memainkan playlist. Pastikan URL valid.');
+                                this.stop();
+                            },
+                            'onStateChange': (event) => {
+                                if (event.data === YT.PlayerState.ENDED) {
+                                    this.stop();
+                                }
+                            }
+                        }
+                    });
+                    
+                } catch (error) {
+                    console.error('Error with YouTube playlist:', error);
+                    this.updateStatus('Gagal memuat playlist');
+                    alert('Gagal memuat playlist. Pastikan URL valid dan Anda online.');
+                    this.stop();
+                }
+            }
+            
+            loadYouTubeAPI() {
+                return new Promise((resolve, reject) => {
+                    if (window.YT && window.YT.Player) {
+                        resolve();
+                        return;
+                    }
+                    
+                    const tag = document.createElement('script');
+                    tag.src = "https://www.youtube.com/iframe_api";
+                    const firstScriptTag = document.getElementsByTagName('script')[0];
+                    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                    
+                    window.onYouTubeIframeAPIReady = () => {
+                        resolve();
+                    };
+                    
+                    setTimeout(() => {
+                        reject(new Error('YouTube API load timeout'));
+                    }, 5000);
+                });
+            }
+            
+            visualize() {
+                if (!this.isPlaying || !this.analyser) return;
+                
+                this.animationId = requestAnimationFrame(() => this.visualize());
+                
+                this.analyser.getByteFrequencyData(this.dataArray);
+                
+                const barCount = this.bars.length;
+                const step = Math.floor(this.dataArray.length / barCount);
+                
+                for (let i = 0; i < barCount; i++) {
+                    const value = this.dataArray[i * step];
+                    const height = (value / 255) * 150;
+                    
+                    this.bars[i].style.height = `${height}px`;
+                    this.bars[i].style.opacity = 0.5 + (value / 255) * 0.5;
+                    
+                    // Change color based on frequency
+                    const hue = (value / 255) * 360;
+                    this.bars[i].style.background = `linear-gradient(to top, hsl(${hue}, 100%, 50%), hsl(${hue + 60}, 100%, 50%))`;
+                }
+            }
+            
+            stop() {
+                this.isPlaying = false;
+                
+                // Stop animation
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                    this.animationId = null;
+                }
+                
+                // Stop audio
+                if (this.audioElement) {
+                    this.audioElement.pause();
+                    this.audioElement = null;
+                }
+                
+                // Destroy YouTube player if exists
+                if (this.youtubePlayer) {
+                    this.youtubePlayer.destroy();
+                    this.youtubePlayer = null;
+                }
+                
+                // Close audio context
+                if (this.audioContext) {
+                    this.audioContext.close();
+                    this.audioContext = null;
+                }
+                
+                // Reset bars
+                this.bars.forEach(bar => {
+                    bar.style.height = '0px';
+                    bar.style.opacity = '0.3';
+                    bar.style.background = 'linear-gradient(to top, #00ffff, #e60073)';
+                });
+                
+                this.updateStatus('Tunggu musik...');
+                this.updateNowPlaying('Tidak ada musik yang diputar');
+            }
+            
+            updateStatus(message) {
+                document.getElementById('status').textContent = message;
+            }
+            
+            updateNowPlaying(title) {
+                document.getElementById('nowPlaying').textContent = `Sedang Diputar: ${title}`;
+            }
+        }
+        
+        // Initialize YouTube API
+        let youtubeAPIReady = false;
+        
+        function onYouTubeIframeAPIReady() {
+            youtubeAPIReady = true;
+        }
+        
+        // Initialize
+        const visualizer = new AudioVisualizer();
+        
+        // Event listeners
+        document.getElementById('micBtn').addEventListener('click', () => {
+            visualizer.stop();
+            visualizer.startMicrophone();
+        });
+        
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                visualizer.stop();
+                visualizer.startFile(file);
+            }
+        });
+        
+        // Auto-start YouTube playlist
+        document.addEventListener('DOMContentLoaded', () => {
+            // Extract playlist ID from the URL
+            const playlistId = 'PL8Cv38St6OFxX43ZORGLpoLCYe3_4UHY0';
+            
+            // Start the playlist automatically
+            visualizer.startYouTubePlaylist(playlistId);
+        });
+        
+        // Update clock every second
+        setInterval(updateClock, 1000);
+        updateClock(); // Initial call
+        
+        // Create particles
+        createParticles();
+        
+        // Load YouTube IFrame API
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    </script>
+</body>
+</html>
